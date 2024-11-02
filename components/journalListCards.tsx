@@ -7,7 +7,7 @@ const JournalListCards = ({ userId }: DashboardProps) => {
 
     useEffect(() => {
         fetchJournalsByUserId(userId, setJournals, setError);
-    }, [userId]);
+    }, []);
 
     const doubleJournal = journals.concat(journals);
 

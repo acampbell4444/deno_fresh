@@ -14,3 +14,20 @@ export const fetchJournalsByUserId = async (
         setError(err.message);
     }
 };
+
+export const fetchAllJournalEntriesById = async (
+    id: string,
+    setAllEntries: any,
+    setError: any,
+) => {
+    try {
+        const response = await fetch(`/api/journal?id=${id}`);
+        if (!response.ok) {
+            throw new Error("Failed to fetch journal");
+        }
+        const result = await response.json();
+        setAllEntries(result.data);
+    } catch (err: any) {
+        setError(err.message);
+    }
+}
