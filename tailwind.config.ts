@@ -1,5 +1,5 @@
 import { type Config } from "tailwindcss";
-import daisyui from "https://esm.sh/daisyui@2.15.2"
+import daisyui from "daisyui";
 
 export default {
   content: [

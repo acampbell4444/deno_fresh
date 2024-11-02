@@ -1,21 +1,12 @@
+import { useEffect, useState } from "preact/hooks";
 import type { Signal } from "@preact/signals";
-import { Button } from "../components/Button.tsx";
+import JournalListCards from "../components/journalListCards.tsx";
 
-// interface CounterProps {
-//   count: Signal<number>;
-// }
+const Dashboard = ({ userId }: DashboardProps) => {
+  return <JournalListCards userId={userId} />;
+};
 
+export default Dashboard;
 interface DashboardProps {
-  userId: String;
-  // count: Signal<number>;
-}
-
-export default function Dashboard(props: DashboardProps) {
-  return (
-    <div class="flex gap-8 py-6">
-      <Button onClick={() => console.log("hello world")}>
-        Click Me I'm the dasbhboard
-      </Button>
-    </div>
-  );
+  userId: string;
 }
