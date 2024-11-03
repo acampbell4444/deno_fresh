@@ -1,4 +1,3 @@
-// routes/api/firstEntry.ts
 import { Handlers } from "$fresh/server.ts";
 import { supabase } from "../../db/supabaseClient.ts";
 
@@ -18,23 +17,3 @@ export const handler: Handlers = {
     });
   },
 };
-
-
-
-// export const handler: Handlers = {
-//   async GET(_req, _ctx) {
-//     // Explicitly type the Supabase query with <JournalEntry>
-//     const { data, error } = await supabase
-//       .from("journal_entries")
-//       .select("*")
-//       .limit(1);
-
-//     if (error) {
-//       return new Response(JSON.stringify({ error: error.message }), { status: 500 });
-//     }
-
-//     return new Response(JSON.stringify({ message: "Connection successful", data }), {
-//       headers: { "Content-Type": "application/json" },
-//     });
-//   },
-// };

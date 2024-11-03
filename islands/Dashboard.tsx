@@ -1,6 +1,6 @@
 import { useEffect, useState } from "preact/hooks";
 import type { Signal } from "@preact/signals";
-import JournalListCards from "../components/journalListCards.tsx";
+import JournalListCards from "../components/JournalListCards.tsx";
 
 const Dashboard = ({ userId }: DashboardProps) => {
   return <JournalListCards userId={userId} />;
