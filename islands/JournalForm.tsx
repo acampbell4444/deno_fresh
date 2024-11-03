@@ -105,20 +105,14 @@ const JournalEntryForm = ({ url, params }: PageProps) => {
             if (entry.id == "0") {
                 entry.photoUrls = [newS3Url];
             } else {
-                entry.photoUrls = [...entry.photoUrls, newS3Url];
+                entry.photoUrls = entry.photoUrls ? [...entry.photoUrls, newS3Url] : [newS3Url];
             }
         }
 
-        // if(entry.id == "0") {
-        //     delete entry.id;
-        //     delete entry.created_at;
-        // }
-     
         saveJournalEntry(entry)
         .then(async () => {
-            //wait ones second
-            await new Promise(r => setTimeout(r, 1000));
-            // window.location.href = `/journal/${entry.journal_id}`;
+            await new Promise(r => setTimeout(r, 100));
+            window.location.href = `/journal/${entry.journal_id}`;
         }).catch((err) => {
             setError(err.message);
         });

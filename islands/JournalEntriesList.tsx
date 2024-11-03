@@ -105,6 +105,8 @@ const JournalEntriesList = ({ id }: JournalEntriesListProps) => {
                                                 console.log(url);   
                                                 return (
                                                 <img
+                                                    height={150}
+                                                    width={150} 
                                                     key={url}
                                                     src={url}
                                                     alt="Journal Entry Photo"
