@@ -5,4 +5,5 @@ export interface JournalEntryProps {
     created_at: string | undefined;
     tags: string[];
     journal_id: string;
+    photoUrls: string[];
 }

@@ -9,6 +9,7 @@ import * as $api_entry from "./routes/api/entry.ts";
 import * as $api_joke from "./routes/api/joke.ts";
 import * as $api_journal from "./routes/api/journal.ts";
 import * as $api_journals from "./routes/api/journals.ts";
+import * as $api_photoUploads from "./routes/api/photoUploads.ts";
 import * as $countdown from "./routes/countdown.tsx";
 import * as $entry_id_ from "./routes/entry/[id].tsx";
 import * as $greet_name_ from "./routes/greet/[name].tsx";
@@ -32,6 +33,7 @@ const manifest = {
     "./routes/api/joke.ts": $api_joke,
     "./routes/api/journal.ts": $api_journal,
     "./routes/api/journals.ts": $api_journals,
+    "./routes/api/photoUploads.ts": $api_photoUploads,
     "./routes/countdown.tsx": $countdown,
     "./routes/entry/[id].tsx": $entry_id_,
     "./routes/greet/[name].tsx": $greet_name_,
