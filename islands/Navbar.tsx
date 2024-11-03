@@ -40,7 +40,7 @@ export default function Navbar() {
                             Documents
                         </a>
                     </li>
-                    <li class="flex items-center space-x-2">
+                    {/* <li class="flex items-center space-x-2">
                         <svg
                             xmlns="http://www.w3.org/2000/svg"
                             fill="currentColor"
@@ -65,7 +65,7 @@ export default function Navbar() {
                         <a href="/journals" class="hover:text-blue-400">
                             Journals
                         </a>
-                    </li>
+                    </li> */}
                     <li class="flex items-center space-x-2">
                         <svg
                             xmlns="http://www.w3.org/2000/svg"

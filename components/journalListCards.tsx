@@ -9,13 +9,10 @@ const JournalListCards = ({ userId }: DashboardProps) => {
         fetchJournalsByUserId(userId, setJournals, setError);
     }, []);
 
-    console.log("journals", journals);
-
-    const doubleJournal = journals.concat(journals);
 
     return (
         <div class="grid grid-cols-1 gap-6 p-6 md:grid-cols-3">
-            {doubleJournal.map((journal: Journal, index: number) => {
+            {journals.map((journal: Journal, index: number) => {
                 const colorClass = iconColors[index % iconColors.length];
                 const formattedDate = new Date(journal.created_at)
                     .toLocaleDateString();
