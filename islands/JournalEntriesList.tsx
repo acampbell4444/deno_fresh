@@ -1,9 +1,33 @@
 import { useEffect, useState } from "preact/hooks";
 import { fetchAllJournalEntriesById } from "../actions/journal.ts";
+import { signal } from "@preact/signals";
 
-const iconColors = ['bg-red-500', 'bg-blue-500', 'bg-green-500', 'bg-yellow-500', 'bg-purple-500'];
+// Define a global signal for the journal ID
+export const journalIdSignal = signal<string | null>(null);
 
-interface JournalFormProps {
+const iconColors = [
+    "bg-blue-600",      // Dark Blue
+    "bg-gray-700",      // Charcoal
+    "bg-teal-600",      // Dark Teal
+    "bg-indigo-700",    // Indigo
+    "bg-gray-800",      // Dark Gray
+    "bg-blue-800",      // Navy
+    "bg-green-700",     // Forest Green
+    "bg-purple-700",    // Deep Purple
+  ];
+  
+  const tagColors = [
+    "bg-blue-300",      // Light Blue
+    "bg-gray-300",      // Light Gray
+    "bg-teal-300",      // Light Teal
+    "bg-indigo-300",    // Soft Indigo
+    "bg-gray-400",      // Medium Gray
+    "bg-blue-400",      // Medium Blue
+    "bg-green-400",     // Soft Green
+    "bg-purple-300",    // Lavender
+  ];
+
+interface JournalEntriesListProps {
     id: string;
 }
 
@@ -11,16 +35,16 @@ interface JournalEntry {
     id: string;
     title: string;
     content: string;
-    updated_at: string;
+    created_at: string;
+    tags: string[]; // Tags array for each journal entry
 }
 
-const JournalForm = ({ id }: JournalFormProps) => {
+const JournalEntriesList = ({ id }: JournalEntriesListProps) => {
     const [allEntries, setAllEntries] = useState<JournalEntry[]>([]);
     const [error, setError] = useState("");
     const [expandedId, setExpandedId] = useState<string | null>(null);
 
     useEffect(() => {
-        console.log("fetching journal");
         fetchAllJournalEntriesById(id, setAllEntries, setError);
     }, [id]);
 
@@ -29,42 +53,55 @@ const JournalForm = ({ id }: JournalFormProps) => {
     };
 
     const handleAddEntry = () => {
-        // Logic to handle adding a new entry
-        console.log("Add new entry");
+        globalThis.location.href = `/entry/0?journalId=${id}`;
     };
 
     const handleEditEntry = (entryId: string) => {
-        // Logic to handle editing the entry
-        console.log(`Edit entry ${entryId}`);
+        globalThis.location.href = `/entry/${entryId}?journalId=${id}`;
     };
 
     return (
-        <div class="p-6">
+        <div class="p-4">
             <div class="flex items-center justify-between mb-4">
                 <h1 class="text-2xl font-bold">Journal Entries</h1>
-                <button 
+                <button
                     onClick={handleAddEntry}
-                    class="btn btn-primary"
+                    class="flex items-center space-x-2 px-4 py-2 font-semibold text-white bg-gradient-to-r from-blue-500 to-indigo-600 rounded-lg shadow-lg transform hover:scale-105 hover:from-blue-600 hover:to-indigo-700 focus:outline-none focus:ring-4 focus:ring-blue-300 transition-transform duration-200"
                 >
-                    Add Entry
+                    <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        fill="currentColor"
+                        class="w-5 h-5"
+                        viewBox="0 0 24 24"
+                    >
+                        <path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10 10-4.5 10-10S17.5 2 12 2zm1 15h-2v-5H7v-2h4V7h2v3h4v2h-4v5z" />
+                    </svg>
+                    <span>Add Entry</span>
                 </button>
             </div>
 
             {error && <p class="text-red-500">{error}</p>}
-            
-            <div class="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
+
+            <div class="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-2">
                 {allEntries.map((entry, index) => {
                     const colorClass = iconColors[index % iconColors.length];
-                    const formattedDate = new Date(entry.updated_at).toLocaleDateString();
+                    const formattedDate = new Date(entry.created_at)
+                        .toLocaleDateString();
 
                     return (
                         <div
                             key={entry.id}
-                            class={`p-4 rounded-lg shadow-lg bg-base-100 transition-all duration-300 hover:shadow-xl cursor-pointer ${expandedId === entry.id ? "col-span-full" : "col-span-1"}`}
+                            class={`p-4 rounded-lg shadow-lg bg-base-100 transition-all duration-300 hover:shadow-xl cursor-pointer ${
+                                expandedId === entry.id
+                                    ? "col-span-full"
+                                    : "col-span-1"
+                            }`}
                             onClick={() => toggleExpand(entry.id)}
                         >
                             <div class="flex items-center space-x-4">
-                                <div class={`p-3 rounded-full text-white ${colorClass}`}>
+                                <div
+                                    class={`p-3 rounded-full text-white ${colorClass}`}
+                                >
                                     <svg
                                         xmlns="http://www.w3.org/2000/svg"
                                         fill="currentColor"
@@ -75,11 +112,32 @@ const JournalForm = ({ id }: JournalFormProps) => {
                                     </svg>
                                 </div>
                                 <div>
-                                    <h3 class="text-lg font-semibold">{entry.title}</h3>
-                                    <p class="text-sm text-gray-500">Updated: {formattedDate}</p>
+                                    <h3 class="text-lg font-semibold">
+                                        {entry.title}
+                                    </h3>
+                                    <p class="text-sm text-gray-500">
+                                        Updated: {formattedDate}
+                                    </p>
                                 </div>
                             </div>
-                            
+
+                            {/* Tags Section */}
+                            <div class="flex flex-wrap mt-3 gap-2">
+                                {entry.tags.map((tag, tagIndex) => (
+                                    <span
+                                        key={tag}
+                                        class={`px-2 py-1 text-xs font-semibold text-gray-800 rounded-lg ${
+                                            tagColors[
+                                                tagIndex % tagColors.length
+                                            ]
+                                        }`}
+                                    >
+                                        #{tag}
+                                    </span>
+                                ))}
+                            </div>
+
+                            {/* Expanded content */}
                             {expandedId === entry.id && (
                                 <div class="mt-4 text-gray-700">
                                     <p>{entry.content}</p>
@@ -110,4 +168,4 @@ const JournalForm = ({ id }: JournalFormProps) => {
     );
 };
 
-export default JournalForm;
+export default JournalEntriesList;

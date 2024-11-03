@@ -1,18 +1,17 @@
 import { PageProps } from "$fresh/server.ts";
-import JournalEntriesList from "../../islands/JournalEntriesList.tsx";
+import JournalForm from "../../islands/JournalForm.tsx";
 import Navbar from "../../islands/Navbar.tsx";
 
-const Journal = (props: PageProps) => {
-    const { id } = props.params;
+const JournalEntryDetail = (props: PageProps) => {
 
     return (
         <>
             <Navbar />
             <div class="max-w-screen-lg mx-auto flex justify-center">
-                <JournalEntriesList id={id} />
+                <JournalForm {...props} />
             </div>
         </>
     );
 };
 
-export default Journal;
+export default JournalEntryDetail;

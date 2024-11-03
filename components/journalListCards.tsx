@@ -9,6 +9,8 @@ const JournalListCards = ({ userId }: DashboardProps) => {
         fetchJournalsByUserId(userId, setJournals, setError);
     }, []);
 
+    console.log("journals", journals);
+
     const doubleJournal = journals.concat(journals);
 
     return (
