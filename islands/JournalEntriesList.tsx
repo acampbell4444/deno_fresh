@@ -1,6 +1,6 @@
 import { useEffect, useState } from "preact/hooks";
 import { fetchAllJournalEntriesById } from "../actions/journal.ts";
-import { signal } from "@preact/signals";
+import moment from "moment";
 
 const JournalEntriesList = ({ id }: JournalEntriesListProps) => {
     const [allEntries, setAllEntries] = useState<JournalEntry[]>([]);
@@ -58,10 +58,11 @@ const JournalEntriesList = ({ id }: JournalEntriesListProps) => {
             <div class="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-2">
                 {allEntries.map((entry, index) => {
                     const colorClass = iconColors[index % iconColors.length];
-                    const formattedDate = new Date(entry.created_at)
-                        .toLocaleDateString();
-                    const formattedEventDate = new Date(entry.date_of_event)
-                        .toLocaleDateString(); // Format the date of event
+
+                    const formattedEventDate = moment(entry.date_of_event)
+                        .format(
+                            "MMMM Do, YYYY",
+                        );
 
                     return (
                         <div
@@ -91,10 +92,10 @@ const JournalEntriesList = ({ id }: JournalEntriesListProps) => {
                                         {entry.title}
                                     </h3>
                                     <p class="text-sm text-gray-500">
-                                        Event Date: {formattedEventDate}
-                                    </p>{" "}
-                                    {/* Display Date of Event */}
-                                    {/* <p class="text-sm text-gray-500">Updated: {formattedDate}</p> */}
+                                        <b>Event Date:</b>
+                                        {formattedEventDate}
+                                    </p>
+                                    {" "}
                                 </div>
                             </div>
 
@@ -117,7 +118,18 @@ const JournalEntriesList = ({ id }: JournalEntriesListProps) => {
                             {/* Expanded content with Photo Gallery */}
                             {expandedId === entry.id && (
                                 <div class="mt-4 text-gray-700">
-                                    <p>{entry.content}</p>
+
+
+                                    {/* <p>{entry.tags.includes('emailcontent') ? entry.content.replace(/\n/g, '/n') : entry.content}</p> */}
+                                    {/* //make the below and uneditable text area */}
+
+                                    <textarea
+                                        height={100}
+                                        class="textarea textarea-bordered w-full h-96 px-4 py-3 rounded-md border border-gray-300 focus:ring focus:ring-blue-200 focus:border-blue-500 resize-y"
+                                        value={entry.content}
+                                        readOnly
+                                        onClick={(e) => e.stopPropagation()}
+                                    ></textarea>
 
                                     {/* Photo Gallery */}
                                     {entry.photoUrls &&
@@ -148,15 +160,9 @@ const JournalEntriesList = ({ id }: JournalEntriesListProps) => {
                                                         >
                                                             {isPdf
                                                                 ? (
-                                                                    // Display PDF icon with filename
                                                                     <div
-                                                                        className="flex flex-col items-center justify-center border border-gray-300 rounded-lg p-4 cursor-pointer hover:shadow-md"
-                                                                        onClick={() =>
-                                                                            window
-                                                                                .open(
-                                                                                    url,
-                                                                                    "_blank",
-                                                                                )} // Open PDF in new window
+                                                                        className="flex flex-col items-center justify-center border border-gray-300 rounded-lg p-4 cursor-pointer hover:shadow-md relative" // Added 'relative' for absolute positioning of the icon
+                                                                        onClick={( e, ) => { e.stopPropagation(); window .open( url, "_blank", ); }} 
                                                                     >
                                                                         <span className="text-lg font-semibold text-gray-800 mb-2">
                                                                             {filename}
@@ -166,6 +172,23 @@ const JournalEntriesList = ({ id }: JournalEntriesListProps) => {
                                                                             type="application/pdf"
                                                                             className="w-full h-64 rounded-md border border-gray-200" // Adjust height as needed
                                                                         />
+
+                                                                        <div className="absolute top-2 right-2 cursor-pointer" >
+                                                                            <svg
+                                                                                xmlns="http://www.w3.org/2000/svg"
+                                                                                className="h-6 w-6 text-gray-800 hover:text-gray-600 transition duration-150 ease-in-out"
+                                                                                fill="none"
+                                                                                viewBox="0 0 24 24"
+                                                                                stroke="currentColor"
+                                                                            >
+                                                                                <path
+                                                                                    strokeLinecap="round"
+                                                                                    strokeLinejoin="round"
+                                                                                    strokeWidth={2}
+                                                                                    d="M8 8h8v8H8V8zm0 0L4 4m4 4L4 4m16 16l-4-4m4 4l-4-4"
+                                                                                />
+                                                                            </svg>
+                                                                        </div>
                                                                     </div>
                                                                 )
                                                                 : (
