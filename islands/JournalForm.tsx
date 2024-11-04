@@ -20,7 +20,7 @@ const JournalEntryForm = ({ url, params }: PageProps) => {
         tags: [],
         journal_id: journalId || "0",
         photoUrls: [],
-        date_of_event: "", // New field for Date of Event
+        date_of_event: "",
     });
     const [newTag, setNewTag] = useState(""); // Input for adding new tags
     const [error, setError] = useState("");
@@ -41,7 +41,7 @@ const JournalEntryForm = ({ url, params }: PageProps) => {
 
         setEntry((prevEntry) => ({
             ...prevEntry,
-            [name]: value, // Dynamically update the field based on the input's name attribute
+            [name]: value,
         }));
     };
 
@@ -70,17 +70,21 @@ const JournalEntryForm = ({ url, params }: PageProps) => {
         }));
     };
 
+    const handlePhotoDelete = (urlToRemove: string) => {
+        setEntry((prevEntry) => ({
+            ...prevEntry,
+            photoUrls: prevEntry.photoUrls.filter((url) => url !== urlToRemove),
+        }));
+    };
+
     const handleKeyDown = (e: KeyboardEvent) => {
         if (e.key === "Enter") {
-            e.preventDefault(); // Prevent form submission on Enter
+            e.preventDefault();
             handleTagAdd();
         }
     };
 
     const handleSave = async () => {
-
-        //TODO: handle multiple files in one save
-
         let newS3Url = "";
 
         if (files.length > 0) {
@@ -88,7 +92,6 @@ const JournalEntryForm = ({ url, params }: PageProps) => {
             const formData = new FormData();
             formData.append("file", file);
             formData.append("name", file.name);
-            const fileName = file.name;
 
             newS3Url = await fetch("/api/photoUploads", {
                 method: "POST",
@@ -100,25 +103,25 @@ const JournalEntryForm = ({ url, params }: PageProps) => {
         }
 
         if (newS3Url) {
-            if (entry.id == "0") {
-                entry.photoUrls = [newS3Url];
-            } else {
-                entry.photoUrls = entry.photoUrls ? [...entry.photoUrls, newS3Url] : [newS3Url];
-            }
+            entry.photoUrls = entry.photoUrls
+                ? [...entry.photoUrls, newS3Url]
+                : [newS3Url];
         }
 
         saveJournalEntry(entry)
-        .then(async () => {
-            window.location.href = `/journal/${entry.journal_id}`;
-        }).catch((err) => {
-            setError(err.message);
-        });
+            .then(async () => {
+                window.location.href = `/journal/${entry.journal_id}`;
+            }).catch((err) => {
+                setError(err.message);
+            });
     };
 
     return (
         <div class="max-w-4xl mx-auto mt-10 p-6 bg-white shadow-lg rounded-lg border border-gray-200">
             <h2 class="text-2xl font-bold text-gray-800 mb-6 text-center">
-                {entry.id != '0' ? `Edit: ${entry.title}` : `New: ${entry.title}`}
+                {entry.id !== "0"
+                    ? `Edit: ${entry.title}`
+                    : `New: ${entry.title}`}
             </h2>
 
             {/* Editable Tags */}
@@ -199,6 +202,34 @@ const JournalEntryForm = ({ url, params }: PageProps) => {
                         value={entry.content}
                         onInput={handleInputChange}
                     />
+                </div>
+
+                {/* Photo URLs Display with Delete Functionality */}
+                <div>
+                    <label class="block text-gray-700 font-semibold mb-2">
+                        Uploaded Photos
+                    </label>
+                    <div class="grid grid-cols-2 gap-4">
+                        {entry.photoUrls.map((url) => (
+                            <div key={url} class="relative">
+                                <embed
+                                    src={url}
+                                    alt="Uploaded Photo"
+                                    class="rounded-lg shadow-md"
+                                    height={100}
+                                    width={100}
+                                />
+                                <button
+                                    onClick={() =>
+                                        handlePhotoDelete(url)}
+                                    class="absolute top-0 right-0 p-1 bg-red-600 text-white rounded-full"
+                                    title="Delete Photo"
+                                >
+                                    &times;
+                                </button>
+                            </div>
+                        ))}
+                    </div>
                 </div>
 
                 {/* File Upload */}
