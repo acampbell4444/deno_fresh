@@ -123,20 +123,65 @@ const JournalEntriesList = ({ id }: JournalEntriesListProps) => {
                                     {entry.photoUrls &&
                                         entry.photoUrls.length > 0 && (
                                         <div class="grid grid-cols-2 gap-4 mt-4">
-                                            {entry.photoUrls.map((url) => {
+                                            {entry.photoUrls
+                                            .sort(url => url.toLowerCase().endsWith(".pdf") ? 1 : -1) // Sort PDFs to the end
+                                            .map((url) => {
+                                                // Check for PDF extension, handling all casing
+                                                const isPdf = url.toLowerCase()
+                                                    .endsWith(".pdf");
+                                                const filename = url.split("/")
+                                                    .pop(); // Extract the filename from the URL
+
                                                 return (
-                                                    <img
-                                                        height={150}
-                                                        width={150}
+                                                    <div
                                                         key={url}
-                                                        src={url}
-                                                        alt="Journal Entry Photo"
-                                                        class="rounded-lg cursor-pointer transform hover:scale-105 transition-transform duration-200 shadow-md"
-                                                        onClick={(e) => {
-                                                            e.stopPropagation();
-                                                            setLightboxUrl(url); // Open lightbox with image
-                                                        }}
-                                                    />
+                                                        class="relative"
+                                                    >
+                                                        {isPdf
+                                                            ? (
+                                                                // Display PDF icon with filename
+                                                                <div
+                                                                    class="flex items-center justify-center border border-gray-300 rounded-lg p-2 cursor-pointer hover:shadow-md"
+                                                                    onClick={() =>
+                                                                        window
+                                                                            .open(
+                                                                                url,
+                                                                                "_blank",
+                                                                            )} // Open PDF in new window
+                                                                >
+                                                                    {/* Better PDF logo, taller than wide */}
+                                                                    <svg
+                                                                        xmlns="http://www.w3.org/2000/svg"
+                                                                        class="h-10 w-8 text-red-600"
+                                                                        viewBox="0 0 24 24"
+                                                                        fill="currentColor"
+                                                                    >
+                                                                        <path d="M7 2C5.34 2 4 3.34 4 5v14c0 1.66 1.34 3 3 3h10c1.66 0 3-1.34 3-3V8l-6-6H7zm0 2h7v5h5v12H7V4zm1 10h5v2H8v-2zm0 3h5v2H8v-2z" />
+                                                                    </svg>
+                                                                    <span class="ml-2 text-gray-800">
+                                                                        {filename}
+                                                                    </span>
+                                                                </div>
+                                                            )
+                                                            : (
+                                                                // Display image normally
+                                                                <img
+                                                                    src={url}
+                                                                    alt="Journal Entry Photo"
+                                                                    class="rounded-lg cursor-pointer transform hover:scale-105 transition-transform duration-200 shadow-md"
+                                                                    height={150}
+                                                                    width={150}
+                                                                    onClick={(
+                                                                        e,
+                                                                    ) => {
+                                                                        e.stopPropagation();
+                                                                        setLightboxUrl(
+                                                                            url,
+                                                                        ); // Open lightbox with image
+                                                                    }}
+                                                                />
+                                                            )}
+                                                    </div>
                                                 );
                                             })}
                                         </div>
@@ -172,7 +217,7 @@ const JournalEntriesList = ({ id }: JournalEntriesListProps) => {
                     class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-75 z-50"
                     onClick={() => setLightboxUrl(null)}
                 >
-                    <img
+                    <embed
                         src={lightboxUrl}
                         alt="Enlarged view"
                         class="max-w-full max-h-full rounded-lg shadow-lg"
