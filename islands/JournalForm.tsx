@@ -20,6 +20,7 @@ const JournalEntryForm = ({ url, params }: PageProps) => {
         tags: [],
         journal_id: journalId || "0",
         photoUrls: [],
+        date_of_event: "", // New field for Date of Event
     });
     const [newTag, setNewTag] = useState(""); // Input for adding new tags
     const [error, setError] = useState("");
@@ -88,7 +89,6 @@ const JournalEntryForm = ({ url, params }: PageProps) => {
             formData.append("file", file);
             formData.append("name", file.name);
             const fileName = file.name;
-            console.log("File name:", fileName);
 
             newS3Url = await fetch("/api/photoUploads", {
                 method: "POST",
@@ -98,8 +98,6 @@ const JournalEntryForm = ({ url, params }: PageProps) => {
                 .then((response) => response.data)
                 .catch((err: any) => console.log(err));
         }
-
-        console.log("newS3Url", newS3Url);
 
         if (newS3Url) {
             if (entry.id == "0") {
@@ -111,14 +109,11 @@ const JournalEntryForm = ({ url, params }: PageProps) => {
 
         saveJournalEntry(entry)
         .then(async () => {
-            await new Promise(r => setTimeout(r, 100));
             window.location.href = `/journal/${entry.journal_id}`;
         }).catch((err) => {
             setError(err.message);
         });
     };
-
-    console.log("entry", entry);
 
     return (
         <div class="max-w-4xl mx-auto mt-10 p-6 bg-white shadow-lg rounded-lg border border-gray-200">
@@ -174,6 +169,21 @@ const JournalEntryForm = ({ url, params }: PageProps) => {
                         onInput={handleInputChange}
                         class="input input-bordered w-full px-4 py-2 rounded-md border border-gray-300 focus:ring focus:ring-blue-200 focus:border-blue-500"
                         placeholder="Enter entry title..."
+                    />
+                </div>
+
+                {/* Date of Event Input */}
+                <div>
+                    <label class="block text-gray-700 font-semibold mb-2">
+                        Date of Event
+                    </label>
+                    <input
+                        type="date"
+                        name="date_of_event"
+                        value={entry.date_of_event}
+                        onInput={handleInputChange}
+                        class="input input-bordered w-full px-4 py-2 rounded-md border border-gray-300 focus:ring focus:ring-blue-200 focus:border-blue-500"
+                        placeholder="mm-dd-yyyy" // Note: this will be ignored in date input type
                     />
                 </div>
 

@@ -2,17 +2,34 @@ import { useEffect, useState } from "preact/hooks";
 import { fetchAllJournalEntriesById } from "../actions/journal.ts";
 import { signal } from "@preact/signals";
 
-// Define a global signal for the journal ID
-// export const journalIdSignal = signal<string | null>(null);
-
 const JournalEntriesList = ({ id }: JournalEntriesListProps) => {
+    console.log("JournalEntriesList", id);
     const [allEntries, setAllEntries] = useState<JournalEntry[]>([]);
     const [error, setError] = useState("");
     const [expandedId, setExpandedId] = useState<string | null>(null);
     const [lightboxUrl, setLightboxUrl] = useState<string | null>(null); // Lightbox state
 
     useEffect(() => {
-        fetchAllJournalEntriesById(id, setAllEntries, setError);
+        if (!id) return;
+        fetchAllJournalEntriesById(id)
+            .then((fetchedEntries: any) => {
+                    console.log(fetchedEntries);
+                    // Sort by date_of_event, if present
+                    const sortedEntries = fetchedEntries
+                    console.log(sortedEntries
+                        .sort((entryA: any, entryB: any) => {
+                            // return new  Date(entry.date_of_event).getTime()
+                            return new Date(entryB.date_of_event).getTime() - new Date(entryA.date_of_event).getTime();
+                        })
+                    )
+
+                 
+           
+            
+                    console.log(sortedEntries);
+                    setAllEntries(sortedEntries);
+                },
+            );
     }, [id]);
 
     const toggleExpand = (entryId: string) => {
@@ -52,18 +69,25 @@ const JournalEntriesList = ({ id }: JournalEntriesListProps) => {
             <div class="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-2">
                 {allEntries.map((entry, index) => {
                     const colorClass = iconColors[index % iconColors.length];
-                    const formattedDate = new Date(entry.created_at).toLocaleDateString();
+                    const formattedDate = new Date(entry.created_at)
+                        .toLocaleDateString();
+                    const formattedEventDate = new Date(entry.date_of_event)
+                        .toLocaleDateString(); // Format the date of event
 
                     return (
                         <div
                             key={entry.id}
                             class={`p-4 rounded-lg shadow-lg bg-base-100 transition-all duration-300 hover:shadow-xl cursor-pointer ${
-                                expandedId === entry.id ? "col-span-full" : "col-span-1"
+                                expandedId === entry.id
+                                    ? "col-span-full"
+                                    : "col-span-1"
                             }`}
                             onClick={() => toggleExpand(entry.id)}
                         >
                             <div class="flex items-center space-x-4">
-                                <div class={`p-3 rounded-full text-white ${colorClass}`}>
+                                <div
+                                    class={`p-3 rounded-full text-white ${colorClass}`}
+                                >
                                     <svg
                                         xmlns="http://www.w3.org/2000/svg"
                                         fill="currentColor"
@@ -74,8 +98,14 @@ const JournalEntriesList = ({ id }: JournalEntriesListProps) => {
                                     </svg>
                                 </div>
                                 <div>
-                                    <h3 class="text-lg font-semibold">{entry.title}</h3>
-                                    <p class="text-sm text-gray-500">Updated: {formattedDate}</p>
+                                    <h3 class="text-lg font-semibold">
+                                        {entry.title}
+                                    </h3>
+                                    <p class="text-sm text-gray-500">
+                                        Event Date: {formattedEventDate}
+                                    </p>{" "}
+                                    {/* Display Date of Event */}
+                                    {/* <p class="text-sm text-gray-500">Updated: {formattedDate}</p> */}
                                 </div>
                             </div>
 
@@ -85,7 +115,9 @@ const JournalEntriesList = ({ id }: JournalEntriesListProps) => {
                                     <span
                                         key={tag}
                                         class={`px-2 py-1 text-xs font-semibold text-gray-800 rounded-lg ${
-                                            tagColors[tagIndex % tagColors.length]
+                                            tagColors[
+                                                tagIndex % tagColors.length
+                                            ]
                                         }`}
                                     >
                                         #{tag}
@@ -97,26 +129,27 @@ const JournalEntriesList = ({ id }: JournalEntriesListProps) => {
                             {expandedId === entry.id && (
                                 <div class="mt-4 text-gray-700">
                                     <p>{entry.content}</p>
-                                    
+
                                     {/* Photo Gallery */}
-                                    {entry.photoUrls && entry.photoUrls.length > 0 && (
+                                    {entry.photoUrls &&
+                                        entry.photoUrls.length > 0 && (
                                         <div class="grid grid-cols-2 gap-4 mt-4">
                                             {entry.photoUrls.map((url) => {
-                                                console.log(url);   
                                                 return (
-                                                <img
-                                                    height={150}
-                                                    width={150} 
-                                                    key={url}
-                                                    src={url}
-                                                    alt="Journal Entry Photo"
-                                                    class="rounded-lg cursor-pointer transform hover:scale-105 transition-transform duration-200 shadow-md"
-                                                    onClick={(e) => {
-                                                        e.stopPropagation();
-                                                        setLightboxUrl(url); // Open lightbox with image
-                                                    }}
-                                                />
-                                            )})}
+                                                    <img
+                                                        height={150}
+                                                        width={150}
+                                                        key={url}
+                                                        src={url}
+                                                        alt="Journal Entry Photo"
+                                                        class="rounded-lg cursor-pointer transform hover:scale-105 transition-transform duration-200 shadow-md"
+                                                        onClick={(e) => {
+                                                            e.stopPropagation();
+                                                            setLightboxUrl(url); // Open lightbox with image
+                                                        }}
+                                                    />
+                                                );
+                                            })}
                                         </div>
                                     )}
 
@@ -125,7 +158,7 @@ const JournalEntriesList = ({ id }: JournalEntriesListProps) => {
                                             e.stopPropagation(); // Prevent collapsing on click
                                             handleEditEntry(entry.id);
                                         }}
-                                        class="flex items-center mt-4 space-x-2 text-sm text-blue-600 hover:text-blue-800"
+                                        class="flex items-center mt-4 space-x-2 px-4 py-2 bg-blue-600 text-white font-semibold rounded-lg shadow-md hover:bg-blue-700 transition-colors duration-200 transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-blue-300 focus:ring-opacity-50"
                                     >
                                         <svg
                                             xmlns="http://www.w3.org/2000/svg"
@@ -150,7 +183,11 @@ const JournalEntriesList = ({ id }: JournalEntriesListProps) => {
                     class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-75 z-50"
                     onClick={() => setLightboxUrl(null)}
                 >
-                    <img src={lightboxUrl} alt="Enlarged view" class="max-w-full max-h-full rounded-lg shadow-lg" />
+                    <img
+                        src={lightboxUrl}
+                        alt="Enlarged view"
+                        class="max-w-full max-h-full rounded-lg shadow-lg"
+                    />
                     <button
                         onClick={() => setLightboxUrl(null)}
                         class="absolute top-4 right-4 text-white text-3xl font-bold focus:outline-none"
@@ -167,25 +204,25 @@ export default JournalEntriesList;
 
 // Color themes for icons and tags
 const iconColors = [
-    "bg-blue-600",      // Dark Blue
-    "bg-gray-700",      // Charcoal
-    "bg-teal-600",      // Dark Teal
-    "bg-indigo-700",    // Indigo
-    "bg-gray-800",      // Dark Gray
-    "bg-blue-800",      // Navy
-    "bg-green-700",     // Forest Green
-    "bg-purple-700",    // Deep Purple
+    "bg-blue-600", // Dark Blue
+    "bg-gray-700", // Charcoal
+    "bg-teal-600", // Dark Teal
+    "bg-indigo-700", // Indigo
+    "bg-gray-800", // Dark Gray
+    "bg-blue-800", // Navy
+    "bg-green-700", // Forest Green
+    "bg-purple-700", // Deep Purple
 ];
-  
+
 const tagColors = [
-    "bg-blue-300",      // Light Blue
-    "bg-gray-300",      // Light Gray
-    "bg-teal-300",      // Light Teal
-    "bg-indigo-300",    // Soft Indigo
-    "bg-gray-400",      // Medium Gray
-    "bg-blue-400",      // Medium Blue
-    "bg-green-400",     // Soft Green
-    "bg-purple-300",    // Lavender
+    "bg-blue-300", // Light Blue
+    "bg-gray-300", // Light Gray
+    "bg-teal-300", // Light Teal
+    "bg-indigo-300", // Soft Indigo
+    "bg-gray-400", // Medium Gray
+    "bg-blue-400", // Medium Blue
+    "bg-green-400", // Soft Green
+    "bg-purple-300", // Lavender
 ];
 
 interface JournalEntriesListProps {
@@ -199,4 +236,5 @@ interface JournalEntry {
     created_at: string;
     tags: string[];
     photoUrls?: string[]; // Optional array of photo URLs
+    date_of_event: string;
 }

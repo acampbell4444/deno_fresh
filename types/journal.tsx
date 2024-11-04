@@ -6,4 +6,5 @@ export interface JournalEntryProps {
     tags: string[];
     journal_id: string;
     photoUrls: string[];
+    date_of_event: string;
 }
