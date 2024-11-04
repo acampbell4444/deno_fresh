@@ -7,8 +7,14 @@ const JournalDashboard = ({ userId }: DashboardProps) => {
     const [isLoading, setIsLoading] = useState(true);
 
     useEffect(() => {
-        fetchJournalsByUserId(userId, setJournals, setError).then(() => setIsLoading(false));
-    }, []);
+        if(!userId) return;
+        fetchJournalsByUserId(userId)
+        .then((fetchedJournals) => {
+            setJournals(fetchedJournals);
+            setIsLoading(false);
+        })
+        .catch((err) => { setError(err.message); });
+    }, [userId]);
 
     // Dummy data for other sections
     const documents = [

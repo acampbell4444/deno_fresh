@@ -3,7 +3,6 @@ import { fetchAllJournalEntriesById } from "../actions/journal.ts";
 import { signal } from "@preact/signals";
 
 const JournalEntriesList = ({ id }: JournalEntriesListProps) => {
-    console.log("JournalEntriesList", id);
     const [allEntries, setAllEntries] = useState<JournalEntry[]>([]);
     const [error, setError] = useState("");
     const [expandedId, setExpandedId] = useState<string | null>(null);
@@ -13,23 +12,13 @@ const JournalEntriesList = ({ id }: JournalEntriesListProps) => {
         if (!id) return;
         fetchAllJournalEntriesById(id)
             .then((fetchedEntries: any) => {
-                    console.log(fetchedEntries);
-                    // Sort by date_of_event, if present
-                    const sortedEntries = fetchedEntries
-                    console.log(sortedEntries
-                        .sort((entryA: any, entryB: any) => {
-                            // return new  Date(entry.date_of_event).getTime()
-                            return new Date(entryB.date_of_event).getTime() - new Date(entryA.date_of_event).getTime();
-                        })
-                    )
-
-                 
-           
-            
-                    console.log(sortedEntries);
-                    setAllEntries(sortedEntries);
-                },
-            );
+                const sortedEntries = fetchedEntries
+                    .sort((entryA: any, entryB: any) =>
+                        new Date(entryB.date_of_event).getTime() -
+                        new Date(entryA.date_of_event).getTime()
+                    );
+                setAllEntries(sortedEntries);
+            });
     }, [id]);
 
     const toggleExpand = (entryId: string) => {
