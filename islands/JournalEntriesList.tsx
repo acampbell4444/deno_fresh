@@ -2,50 +2,23 @@ import { useEffect, useState } from "preact/hooks";
 import { fetchAllJournalEntriesById } from "../actions/journal.ts";
 import { signal } from "@preact/signals";
 
-// Define a global signal for the journal ID
-export const journalIdSignal = signal<string | null>(null);
-
-const iconColors = [
-    "bg-blue-600",      // Dark Blue
-    "bg-gray-700",      // Charcoal
-    "bg-teal-600",      // Dark Teal
-    "bg-indigo-700",    // Indigo
-    "bg-gray-800",      // Dark Gray
-    "bg-blue-800",      // Navy
-    "bg-green-700",     // Forest Green
-    "bg-purple-700",    // Deep Purple
-  ];
-  
-  const tagColors = [
-    "bg-blue-300",      // Light Blue
-    "bg-gray-300",      // Light Gray
-    "bg-teal-300",      // Light Teal
-    "bg-indigo-300",    // Soft Indigo
-    "bg-gray-400",      // Medium Gray
-    "bg-blue-400",      // Medium Blue
-    "bg-green-400",     // Soft Green
-    "bg-purple-300",    // Lavender
-  ];
-
-interface JournalEntriesListProps {
-    id: string;
-}
-
-interface JournalEntry {
-    id: string;
-    title: string;
-    content: string;
-    created_at: string;
-    tags: string[]; // Tags array for each journal entry
-}
-
 const JournalEntriesList = ({ id }: JournalEntriesListProps) => {
     const [allEntries, setAllEntries] = useState<JournalEntry[]>([]);
     const [error, setError] = useState("");
     const [expandedId, setExpandedId] = useState<string | null>(null);
+    const [lightboxUrl, setLightboxUrl] = useState<string | null>(null); // Lightbox state
 
     useEffect(() => {
-        fetchAllJournalEntriesById(id, setAllEntries, setError);
+        if (!id) return;
+        fetchAllJournalEntriesById(id)
+            .then((fetchedEntries: any) => {
+                const sortedEntries = fetchedEntries
+                    .sort((entryA: any, entryB: any) =>
+                        new Date(entryB.date_of_event).getTime() -
+                        new Date(entryA.date_of_event).getTime()
+                    );
+                setAllEntries(sortedEntries);
+            });
     }, [id]);
 
     const toggleExpand = (entryId: string) => {
@@ -87,6 +60,8 @@ const JournalEntriesList = ({ id }: JournalEntriesListProps) => {
                     const colorClass = iconColors[index % iconColors.length];
                     const formattedDate = new Date(entry.created_at)
                         .toLocaleDateString();
+                    const formattedEventDate = new Date(entry.date_of_event)
+                        .toLocaleDateString(); // Format the date of event
 
                     return (
                         <div
@@ -116,8 +91,10 @@ const JournalEntriesList = ({ id }: JournalEntriesListProps) => {
                                         {entry.title}
                                     </h3>
                                     <p class="text-sm text-gray-500">
-                                        Updated: {formattedDate}
-                                    </p>
+                                        Event Date: {formattedEventDate}
+                                    </p>{" "}
+                                    {/* Display Date of Event */}
+                                    {/* <p class="text-sm text-gray-500">Updated: {formattedDate}</p> */}
                                 </div>
                             </div>
 
@@ -137,16 +114,40 @@ const JournalEntriesList = ({ id }: JournalEntriesListProps) => {
                                 ))}
                             </div>
 
-                            {/* Expanded content */}
+                            {/* Expanded content with Photo Gallery */}
                             {expandedId === entry.id && (
                                 <div class="mt-4 text-gray-700">
                                     <p>{entry.content}</p>
+
+                                    {/* Photo Gallery */}
+                                    {entry.photoUrls &&
+                                        entry.photoUrls.length > 0 && (
+                                        <div class="grid grid-cols-2 gap-4 mt-4">
+                                            {entry.photoUrls.map((url) => {
+                                                return (
+                                                    <img
+                                                        height={150}
+                                                        width={150}
+                                                        key={url}
+                                                        src={url}
+                                                        alt="Journal Entry Photo"
+                                                        class="rounded-lg cursor-pointer transform hover:scale-105 transition-transform duration-200 shadow-md"
+                                                        onClick={(e) => {
+                                                            e.stopPropagation();
+                                                            setLightboxUrl(url); // Open lightbox with image
+                                                        }}
+                                                    />
+                                                );
+                                            })}
+                                        </div>
+                                    )}
+
                                     <button
                                         onClick={(e) => {
                                             e.stopPropagation(); // Prevent collapsing on click
                                             handleEditEntry(entry.id);
                                         }}
-                                        class="flex items-center mt-4 space-x-2 text-sm text-blue-600 hover:text-blue-800"
+                                        class="flex items-center mt-4 space-x-2 px-4 py-2 bg-blue-600 text-white font-semibold rounded-lg shadow-md hover:bg-blue-700 transition-colors duration-200 transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-blue-300 focus:ring-opacity-50"
                                     >
                                         <svg
                                             xmlns="http://www.w3.org/2000/svg"
@@ -164,8 +165,65 @@ const JournalEntriesList = ({ id }: JournalEntriesListProps) => {
                     );
                 })}
             </div>
+
+            {/* Lightbox */}
+            {lightboxUrl && (
+                <div
+                    class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-75 z-50"
+                    onClick={() => setLightboxUrl(null)}
+                >
+                    <img
+                        src={lightboxUrl}
+                        alt="Enlarged view"
+                        class="max-w-full max-h-full rounded-lg shadow-lg"
+                    />
+                    <button
+                        onClick={() => setLightboxUrl(null)}
+                        class="absolute top-4 right-4 text-white text-3xl font-bold focus:outline-none"
+                    >
+                        &times;
+                    </button>
+                </div>
+            )}
         </div>
     );
 };
 
 export default JournalEntriesList;
+
+// Color themes for icons and tags
+const iconColors = [
+    "bg-blue-600", // Dark Blue
+    "bg-gray-700", // Charcoal
+    "bg-teal-600", // Dark Teal
+    "bg-indigo-700", // Indigo
+    "bg-gray-800", // Dark Gray
+    "bg-blue-800", // Navy
+    "bg-green-700", // Forest Green
+    "bg-purple-700", // Deep Purple
+];
+
+const tagColors = [
+    "bg-blue-300", // Light Blue
+    "bg-gray-300", // Light Gray
+    "bg-teal-300", // Light Teal
+    "bg-indigo-300", // Soft Indigo
+    "bg-gray-400", // Medium Gray
+    "bg-blue-400", // Medium Blue
+    "bg-green-400", // Soft Green
+    "bg-purple-300", // Lavender
+];
+
+interface JournalEntriesListProps {
+    id: string;
+}
+
+interface JournalEntry {
+    id: string;
+    title: string;
+    content: string;
+    created_at: string;
+    tags: string[];
+    photoUrls?: string[]; // Optional array of photo URLs
+    date_of_event: string;
+}

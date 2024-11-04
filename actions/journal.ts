@@ -3,8 +3,6 @@ import { JournalEntryProps } from "../types/journal.tsx";
 
 export const fetchJournalsByUserId = async (
     userId: string,
-    setJournals: any,
-    setError: any,
 ) => {
     try {
         const response = await fetch(`/api/journals?user_id=${userId}`);
@@ -12,16 +10,14 @@ export const fetchJournalsByUserId = async (
             throw new Error("Failed to fetch journals");
         }
         const result = await response.json();
-        setJournals(result.data);
+        return result.data;
     } catch (err: any) {
-        setError(err.message);
+        return err.message;
     }
 };
 
 export const fetchAllJournalEntriesById = async (
     id: string,
-    setAllEntries: any,
-    setError: any,
 ) => {
     try {
         const response = await fetch(`/api/journal?id=${id}`);
@@ -29,9 +25,9 @@ export const fetchAllJournalEntriesById = async (
             throw new Error("Failed to fetch journal");
         }
         const result = await response.json();
-        setAllEntries(result.data);
+        return result.data;
     } catch (err: any) {
-        setError(err.message);
+        return err.message;
     }
 };
 
@@ -53,7 +49,6 @@ export const fetchJournalEntryById = async (
 export const saveJournalEntry = async (entry: JournalEntryProps) => {
     try {
         const isNew = entry.id == "0";
-        console.log("isNew", isNew);
         const body = {...entry}
         if(isNew) {
             delete body.id;

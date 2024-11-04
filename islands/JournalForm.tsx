@@ -1,7 +1,6 @@
 import { useEffect, useState } from "preact/hooks";
 import { fetchJournalEntryById, saveJournalEntry } from "../actions/journal.ts";
 import { JournalEntryProps } from "../types/journal.tsx";
-import { journalIdSignal } from "./JournalEntriesList.tsx";
 import { PageProps } from "$fresh/server.ts";
 
 interface JournalEntriesListProps {
@@ -9,14 +8,10 @@ interface JournalEntriesListProps {
 }
 
 const JournalEntryForm = ({ url, params }: PageProps) => {
-    const { id } = params;
+    const id = params?.id || "0";
     const requestUrl = new URL(url);
     const journalId = requestUrl.searchParams.get("journalId");
-    console.log("journalId", journalId);
 
-    console.log("searchParams searchParams", url);
-
-    //get globalThis.location.href = `/entry/0?journalId=${id}`;
     const [entry, setEntry] = useState<JournalEntryProps>({
         id: id || "0",
         title: "",
@@ -24,13 +19,14 @@ const JournalEntryForm = ({ url, params }: PageProps) => {
         created_at: "",
         tags: [],
         journal_id: journalId || "0",
+        photoUrls: [],
+        date_of_event: "", // New field for Date of Event
     });
     const [newTag, setNewTag] = useState(""); // Input for adding new tags
     const [error, setError] = useState("");
+    const [files, setFiles] = useState<File[]>([]); // State to store multiple files
 
     useEffect(() => {
-        console.log("id", id);
-        console.log(!id, "not id");
         if (id == "0") return;
         fetchJournalEntryById(id).then((fetchedEntry) => {
             setEntry(fetchedEntry); // Initialize form with fetched data
@@ -47,6 +43,13 @@ const JournalEntryForm = ({ url, params }: PageProps) => {
             ...prevEntry,
             [name]: value, // Dynamically update the field based on the input's name attribute
         }));
+    };
+
+    const handleFileChange = (e: Event) => {
+        const target = e.target as HTMLInputElement;
+        if (target.files) {
+            setFiles(Array.from(target.files)); // Store selected files in state
+        }
     };
 
     const handleTagAdd = () => {
@@ -74,9 +77,38 @@ const JournalEntryForm = ({ url, params }: PageProps) => {
         }
     };
 
-    const handleSave = () => {
-        console.log("entry", entry);
-        saveJournalEntry(entry).then(() => {
+    const handleSave = async () => {
+
+        //TODO: handle multiple files in one save
+
+        let newS3Url = "";
+
+        if (files.length > 0) {
+            const file = files[0];
+            const formData = new FormData();
+            formData.append("file", file);
+            formData.append("name", file.name);
+            const fileName = file.name;
+
+            newS3Url = await fetch("/api/photoUploads", {
+                method: "POST",
+                body: formData,
+            })
+                .then((response) => response.json())
+                .then((response) => response.data)
+                .catch((err: any) => console.log(err));
+        }
+
+        if (newS3Url) {
+            if (entry.id == "0") {
+                entry.photoUrls = [newS3Url];
+            } else {
+                entry.photoUrls = entry.photoUrls ? [...entry.photoUrls, newS3Url] : [newS3Url];
+            }
+        }
+
+        saveJournalEntry(entry)
+        .then(async () => {
             window.location.href = `/journal/${entry.journal_id}`;
         }).catch((err) => {
             setError(err.message);
@@ -86,7 +118,7 @@ const JournalEntryForm = ({ url, params }: PageProps) => {
     return (
         <div class="max-w-4xl mx-auto mt-10 p-6 bg-white shadow-lg rounded-lg border border-gray-200">
             <h2 class="text-2xl font-bold text-gray-800 mb-6 text-center">
-                {entry.title ? `Edit: ${entry.title}` : "Edit Journal Entry"}
+                {entry.id != '0' ? `Edit: ${entry.title}` : `New: ${entry.title}`}
             </h2>
 
             {/* Editable Tags */}
@@ -140,6 +172,21 @@ const JournalEntryForm = ({ url, params }: PageProps) => {
                     />
                 </div>
 
+                {/* Date of Event Input */}
+                <div>
+                    <label class="block text-gray-700 font-semibold mb-2">
+                        Date of Event
+                    </label>
+                    <input
+                        type="date"
+                        name="date_of_event"
+                        value={entry.date_of_event}
+                        onInput={handleInputChange}
+                        class="input input-bordered w-full px-4 py-2 rounded-md border border-gray-300 focus:ring focus:ring-blue-200 focus:border-blue-500"
+                        placeholder="mm-dd-yyyy" // Note: this will be ignored in date input type
+                    />
+                </div>
+
                 {/* Content Textarea */}
                 <div>
                     <label class="block text-gray-700 font-semibold mb-2">
@@ -151,8 +198,20 @@ const JournalEntryForm = ({ url, params }: PageProps) => {
                         class="textarea textarea-bordered w-full h-96 px-4 py-3 rounded-md border border-gray-300 focus:ring focus:ring-blue-200 focus:border-blue-500 resize-y"
                         value={entry.content}
                         onInput={handleInputChange}
-                    >
-                    </textarea>
+                    />
+                </div>
+
+                {/* File Upload */}
+                <div>
+                    <label class="block text-gray-700 font-semibold mb-2">
+                        Upload Files
+                    </label>
+                    <input
+                        type="file"
+                        multiple
+                        onChange={handleFileChange}
+                        class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
+                    />
                 </div>
 
                 {/* Save Button */}
